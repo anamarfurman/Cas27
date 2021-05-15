@@ -2,78 +2,81 @@
 using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using Cas272.Lib;
+using System.Diagnostics;
 
 namespace Cas272
 {
-    class SeleniumTests
+    class SeleniumTests : BaseTest
     {
-
-        IWebDriver Driver;
-
+               
         [SetUp]
         public void SetUp()
+
+
         {
-            Driver = new ChromeDriver();
-            Driver.Manage().Window.Maximize();
+            this.driver = new ChromeDriver();
+            this.driver.Manage().Window.Maximize();
         }
 
         [TearDown]
         public void TearDown()
         {
-            Driver.Close();
+            this.driver.Close();
         }
 
         [Test]
+
         public void TestGoogleSearch()
         {
-            MyFunctions.Wait(500);
-            Driver.Navigate().GoToUrl("https://www.google.com/");
-            Driver.FindElement(By.Id("L2AGLb")).Click();
-            
-            MyFunctions.Wait(500);
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            Logger.beginTest("TestGoogleSearch");
+            Logger.log("INFO", "Starting test");
 
-            IWebElement SearchField = MyFindElement(By.Name("q"));
+            this.ExplicitWait(500);
+
+            this.GoToURL("https://www.google.com/");
+            this.driver.FindElement(By.Id("L2AGLb")).Click();
+
+            this.ExplicitWait(500);
+
+            IWebElement SearchField = this.MyFindElement(By.Name("q"));
             SearchField.SendKeys("Selenium automation with C#");
 
-            MyFunctions.Wait(500);
+            this.ExplicitWait(500);
 
-            IWebElement SearchButton = MyFindElement(By.Name("btnK"));                    
+            IWebElement SearchButton = this.MyFindElement(By.Name("btnK"));                    
             SearchButton.Click();
 
-            MyFunctions.Wait(500);
+            this.ExplicitWait(500);
 
-            IWebElement ChangeToEnglish = MyFindElement(By.PartialLinkText("to English"));
+            IWebElement ChangeToEnglish = this.MyFindElement(By.PartialLinkText("to English"));
             ChangeToEnglish.Click();
 
-            MyFunctions.Wait(2000);
+            this.ExplicitWait(2000);
 
-            IWebElement Body = MyFindElement(By.TagName("body"));
-            if(Body.Text.Contains("Videos"))
+            IWebElement Body = this.MyFindElement(By.TagName("body"));
+
+            bool containsVideos = Body.Text.Contains("Videos");
+            stopwatch.Stop();
+            Logger.log("INFO", $"Test ran for: {stopwatch.ElapsedMilliseconds / 1000} seconds");
+
+            if (Body.Text.Contains("Videos"))
             {
+                Logger.log("ASSERT", "Test passed.");
+                Logger.endTest();
                 Assert.Pass();
             }
-            else 
+            else
             {
+                Logger.log("ASSERT", "Test failed - No videos present.");
+                Logger.endTest();
                 Assert.Fail("Test failed - No videos present.");
             }
                         
         }
 
-        private IWebElement MyFindElement(By Selector)
-        {
-            IWebElement ReturnElement = null;
-
-            try 
-            {
-                ReturnElement = Driver.FindElement(Selector);
-            }
-            catch (NoSuchElementException)
-            {
-                Assert.Fail("Test failed - Element not found[{0}]", Selector.ToString());
-            }
-
-            return ReturnElement;
-        }
+        
 
     }
 }
